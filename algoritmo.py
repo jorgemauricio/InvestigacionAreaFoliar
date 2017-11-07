@@ -18,8 +18,16 @@ plt.style.use('ggplot')
 
 # - - - - - MAIN - - - - - 
 def main():
+	# función para generar el dict de colores (comentar si ya se tiene generado el diccionario)
+	generarDictColores()
+	
+
+def generarDictColores():
+	"""
+	Genera un diccionario de colores de todas las imagenes que se encuentren en la carpeta images/train
+	"""
 	# generar una lista con todas las imagenes
-	fileList = [x for x in os.listdir('images') if x.endswith('.jpg')]
+	fileList = [x for x in os.listdir('images/train') if x.endswith('.jpg')]
 
 	# declarar dict
 	dictColores = {}
@@ -31,7 +39,7 @@ def main():
 		print(file)
 
 		# nombre temporal del archivo a evaluar
-		nombreTemporalArchivo = "images/{}".format(file)
+		nombreTemporalArchivo = "images/train/{}".format(file)
 
 		# cargar la imagen
 		im = Image.open(nombreTemporalArchivo)
