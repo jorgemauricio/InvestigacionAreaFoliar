@@ -99,6 +99,7 @@ ENV/
 
 # images
 /images
+/resultados
 
 # mypy
 .mypy_cache/
