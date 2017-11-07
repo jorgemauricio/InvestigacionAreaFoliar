@@ -5,7 +5,9 @@
 Crear un algoritmo capaz de identificar el porcentaje de nutrientes en una hoja basado en su color
 
 ## Información
-Se cuenta con 64 muestras de hojas de aguacate Hass del Estado de Nayarit.
+Se cuenta con 64 imagnes y muestras de hojas de aguacate Hass del Estado de Colima. Se pretende utilizar:
+* 50 Hojas como Train
+* 14 Hojas como Test
 
 ## Estructura de información
 En la carpeta **data** se encuentra disponible la información referente a los análisis foliares de cada una de las hojas.
