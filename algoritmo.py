@@ -19,9 +19,101 @@ plt.style.use('ggplot')
 # - - - - - MAIN - - - - - 
 def main():
 	# función para generar el dict de colores (comentar si ya se tiene generado el diccionario)
-	generarDictColores()
-	
+	# generarDictColores()
 
+	# leer csv totalDecolores
+	data = pd.read_csv('resultados/totalDeColores.csv')
+
+	# crear columna L
+	data['L'] = data.apply(lambda x: generarValorL(x['color']), axis=1)
+
+	# crear columna L
+	data['a'] = data.apply(lambda x: generarValorA(x['color']), axis=1)
+
+	# crear columna L
+	data['b'] = data.apply(lambda x: generarValorB(x['color']), axis=1)
+
+	# eliminar colores grises
+	data = data.loc[(data['a'] <= -5) | (data['a'] >= 5) & (data['b'] <= -5) | (data['b'] >= 5)]
+
+	# sumatoria de la frecuencia
+	sumatoriaFrecuencia = data['frecuencia'].sum()
+
+	# generar columna de porcentaje
+	data['porcentaje'] = data['frecuencia'] / sumatoriaFrecuencia * 100
+
+	# ordenar valores
+	data = data.sort_values(by='porcentaje', ascending=False)
+
+	# sumatoria de porcentajes
+	data['sumatoriaPorcentaje'] = data['porcentaje'].cumsum()
+
+	# tomar solo en cuenta el 80-20 de los datos
+	data = data.loc[data['sumatoriaPorcentaje'] <= 80]
+
+	# clasificacion de hoja de acuerdo al porcentaje de color verde
+	data['clasificacionColor'] = data.apply(lambda x: clasificacionDecolor(x['L'],x['a'],x['b']), axis=1)
+
+	# eliminar colores de fondo
+	data = data.loc[data['clasificacionColor'] != 'f']
+
+	# guardar csv
+	data.to_csv('resultados/colores_clasificados.csv')
+
+	
+# funcion para determinar el porcentaje de color verde
+def clasificacionDecolor(L,a,b):
+	"""
+	Determina la clasificacion del color mediante los espectros de color Lab
+	param: L: valor L
+	param: a: valor a
+	param: b: valor b
+	regresa v: verde, r: rojo, c: cafe, a: amarillo, n: naranja, az: azul, f: fondo
+	"""
+
+	if L >= 0 and L <= 88 and a >= -86 and a <= -20 and b >= 3 and b <= 128:
+		return "v"
+	elif L >= 9 and L <= 56 and a >= 30 and a <= 71 and b >= 15 and b <= 51:
+		return "r"
+	elif L >= 44 and L <= 64 and a >= 12 and a <=26 and b >= 53 and b <= 55:
+		return "c"
+	elif L >= 66 and L <= 98 and a >= -14 and a <= 14 and b >= 50 and b <= 70:
+		return "a"
+	elif L >= 41 and L <= 67 and a >= 44 and a <= 47 and b >= 52 and b <= 61:
+		return "n"
+	elif L >= 2 and L <= 34 and a >= -128 and a <= -78 and b >= -128 and b <= -29:
+		return "az"
+	else:
+		return "f"
+
+# función para generar la columna L
+def generarValorL(valor):
+	"""
+	Genera el valor de L del string de color
+	param: valor:  string de color
+	"""
+	L, a, b = valor.split("/")
+	return float(L)
+
+# función para generar la columna L
+def generarValorA(valor):
+	"""
+	Genera el valor de L del string de color
+	param: valor:  string de color
+	"""
+	L, a, b = valor.split("/")
+	return float(a)
+
+# función para generar la columna L
+def generarValorB(valor):
+	"""
+	Genera el valor de L del string de color
+	param: valor:  string de color
+	"""
+	L, a, b = valor.split("/")
+	return float(b)
+
+# función para generar el dict de colores
 def generarDictColores():
 	"""
 	Genera un diccionario de colores de todas las imagenes que se encuentren en la carpeta images/train
