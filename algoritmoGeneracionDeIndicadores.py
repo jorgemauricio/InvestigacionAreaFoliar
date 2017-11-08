@@ -22,7 +22,7 @@ def main():
 	dataFoliar = pd.read_csv('data/Foliares_Hass.csv')
 
 	# estructura de archivo csv de resultados
-	textToData = "Id,N,P,K,Ca,Mg,S,Fe,Cu,Mn,Zn,B,Mo,Na,Cl,pVerde,pRojo,pCafe,pAmarillo,pNaranja,pAzul\n"
+	textToData = "Id,N,P,K,Ca,Mg,S,Fe,Cu,Mn,Zn,B,Mo,Na,Cl,pVerde,pCafeRojo,pCafe,pAmarillo,pAmarilloDorado,pCafeAmarillo\n"
 	
 	# obtener los archivos de imagen a clasificar
 	# generar una lista con todas las imagenes
@@ -85,7 +85,13 @@ def main():
 		data['b'] = data.apply(lambda x: generarValorB(x['color']), axis=1)
 
 		# eliminar colores grises
-		data = data.loc[(data['a'] <= -5) | (data['a'] >= 5) & (data['b'] <= -5) | (data['b'] >= 5)]
+		# data = data.loc[(data['a'] <= -5) | (data['a'] >= 5) | (data['b'] <= -5) | (data['b'] >= 5)] 
+
+		# clasificacion de hoja de acuerdo al porcentaje de color verde
+		data['clasificacionColor'] = data.apply(lambda x: clasificacionDecolor(x['L'],x['a'],x['b']), axis=1)
+
+		# eliminar colores de fondo
+		data = data.loc[data['clasificacionColor'] != "f"]
 
 		# sumatoria de la frecuencia
 		sumatoriaFrecuencia = data['frecuencia'].sum()
@@ -97,13 +103,7 @@ def main():
 		data['sumatoriaPorcentaje'] = data['porcentaje'].cumsum()
 
 		# tomar solo en cuenta el 80-20 de los datos
-		data = data.loc[data['sumatoriaPorcentaje'] <= 80]
-
-		# clasificacion de hoja de acuerdo al porcentaje de color verde
-		data['clasificacionColor'] = data.apply(lambda x: clasificacionDecolor(x['L'],x['a'],x['b']), axis=1)
-
-		# eliminar colores de fondo
-		#data = data.loc[data['clasificacionColor'] != 'f']
+		# data = data.loc[data['sumatoriaPorcentaje'] <= 80]
 
 		# nombre archivo de colores clasificados para cada imagen
 		nombreTemporalArchivoColoresClasificados = 'resultados/totalDecolores_clasificados_{}.csv'.format(file.split('.')[0])
@@ -111,128 +111,54 @@ def main():
 		# guardar como csv
 		data.to_csv(nombreTemporalArchivoColoresClasificados, index=False)
 
+		# numero de registros por clasificacion
+		pVerde = len(np.array(data.loc[data['clasificacionColor'] == 'v']))
+		pCafeRojo = len(np.array(data.loc[data['clasificacionColor'] == 'cr']))
+		pCafe = len(np.array(data.loc[data['clasificacionColor'] == 'c']))
+		pAmarillo = len(np.array(data.loc[data['clasificacionColor'] == 'a']))
+		pAmarilloDorado = len(np.array(data.loc[data['clasificacionColor'] == 'ag']))
+		pCafeAmarillo = len(np.array(data.loc[data['clasificacionColor'] == 'ca']))
+
+		print(pVerde, pCafeRojo, pCafe, pAmarillo, pAmarilloDorado, pCafeAmarillo)
+
 		# numero total de registros
-		numeroTotalDeRegistros = len(np.array(data['color']))
+		numeroTotalDeRegistros = pVerde + pCafeRojo + pCafe + pAmarillo + pAmarilloDorado + pCafeAmarillo
 
 		# numero de registros por clasificacion
-		pVerde = len(np.array(data.loc[data['clasificacionColor'] == 'v'])) / numeroTotalDeRegistros * 100
-		pRojo = len(np.array(data.loc[data['clasificacionColor'] == 'r'])) / numeroTotalDeRegistros * 100
-		pCafe = len(np.array(data.loc[data['clasificacionColor'] == 'c'])) / numeroTotalDeRegistros * 100
-		pAmarillo = len(np.array(data.loc[data['clasificacionColor'] == 'a'])) / numeroTotalDeRegistros * 100
-		pNaranja = len(np.array(data.loc[data['clasificacionColor'] == 'n'])) / numeroTotalDeRegistros * 100
-		pAzul = len(np.array(data.loc[data['clasificacionColor'] == 'az'])) / numeroTotalDeRegistros * 100
+		pVerde = pVerde / numeroTotalDeRegistros * 100
+		pCafeRojo = pCafeRojo / numeroTotalDeRegistros * 100
+		pCafe = pCafe / numeroTotalDeRegistros * 100
+		pAmarillo = pAmarillo / numeroTotalDeRegistros * 100
+		pAmarilloDorado = pAmarilloDorado / numeroTotalDeRegistros * 100
+		pCafeAmarillo = pCafeAmarillo / numeroTotalDeRegistros * 100
 
 		# agregar record al texto
 		dataTemporalFoliar = dataFoliar.loc[dataFoliar['Id'] == int(file.split('.')[0])]
-		textToData += "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{"}.format(file.split('.')[0],dataTemporalFoliar['N'],dataTemporalFoliar['P'],dataTemporalFoliar['K'],dataTemporalFoliar['Ca'],dataTemporalFoliar['Mg'],dataTemporalFoliar['S'],dataTemporalFoliar['Fe'],dataTemporalFoliar['Cu'],dataTemporalFoliar['Mn'],dataTemporalFoliar['Zn'],dataTemporalFoliar['B'],dataTemporalFoliar['Mo'],dataTemporalFoliar['Na'],dataTemporalFoliar['Cl'],pVerde,pRojo,pCafe,pAmarillo,pNaranja,pAzul)
+		N = np.array(dataTemporalFoliar['N'])
+		P = np.array(dataTemporalFoliar['P'])
+		K = np.array(dataTemporalFoliar['K'])
+		Ca = np.array(dataTemporalFoliar['Ca'])
+		Mg = np.array(dataTemporalFoliar['Mg'])
+		S = np.array(dataTemporalFoliar['S'])
+		Fe = np.array(dataTemporalFoliar['Fe'])
+		Cu = np.array(dataTemporalFoliar['Cu'])
+		Mn = np.array(dataTemporalFoliar['Mn'])
+		Zn = np.array(dataTemporalFoliar['Zn'])
+		B = np.array(dataTemporalFoliar['B'])
+		Mo = np.array(dataTemporalFoliar['Mo'])
+		Na = np.array(dataTemporalFoliar['Na'])
+		Cl = np.array(dataTemporalFoliar['Cl'])
+
+		print('***** N: {}'.format(N[0]))
+		print('***** pVerde: {}'.format(pVerde))
+
+		textToData += "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{:0.2f},{:0.2f},{:0.2f},{:0.2f},{:0.2f},{:0.2f}\n".format(file.split('.')[0],N[0],P[0],K[0],Ca[0],Mg[0],S[0],Fe[0],Cu[0],Mn[0],Zn[0],B[0],Mo[0],Na[0],Cl[0],pVerde,pCafeRojo,pCafe,pAmarillo,pAmarilloDorado,pCafeAmarillo)
 
 		# guardar archivo con los resultados
 		nombreTemporalDeArchivoFinal = 'data/Foliar_join_porcentajes.csv'
 		archivoCompiladoFinal = open(nombreTemporalDeArchivoFinal, "w")
 		archivoCompiladoFinal.write(textToData)
 		archivoCompiladoFinal.close()
-
-
-# función para generar el dict de colores
-def generarDictColores(nombreImagen):
-	"""
-	Genera un diccionario de colores de todas las imagenes que se encuentren en la carpeta images/train
-	"""
-	# declarar dict
-	dictColores = {}
-
-	# determinar los principales colores en las imágenes
-	# print nombre de la imagen
-	print("***** Procesando: {}".format(nombreImagen))
-
-	# nombre temporal del archivo a evaluar
-	nombreTemporalArchivo = "images/train/{}".format(nombreImagen)
-
-	# cargar la imagen
-	im = Image.open(nombreTemporalArchivo)
-	pix = im.load()
-
-	# tamaño de la imagen
-	x, y = im.size
-
-	# ciclo for para contabilizar los colores
-	for i in range(x):
-		for j in range(y):
-			vR, vG, vB = pix[i, j]
-			valueL, valueA, valueB = convertirRGBtoLAB(vR, vG, vB)
-			statusColor = validarArea(valueL, valueA, valueB)
-			if statusColor:
-				nombreTemporalClave = "{}/{}/{}".format(valueL, valueA, valueB)
-				if nombreTemporalClave in dictColores:
-					dictColores[nombreTemporalClave] += 1
-				else:
-					dictColores[nombreTemporalClave] = 1
-
-	# dict to DataFrame
-	data = pd.DataFrame()
-	data['color'] = dictColores.keys()
-	data['frecuencia'] = dictColores.values()
-
-	# ordenar información
-	data = data.sort_values(by='frecuencia', ascending = False)
-
-	# nombre archivo de colores para cada imagen
-	nombreTemporalArchivoColores = 'resultados/totalDeColores_{}.csv'.format(nombreImagen.split('.')[0])
-
-	# save to csv
-	data.to_csv(nombreTemporalArchivoColores, index=False)
-
-	# crear columna L
-	data['L'] = data.apply(lambda x: generarValorL(x['color']), axis=1)
-
-	# crear columna L
-	data['a'] = data.apply(lambda x: generarValorA(x['color']), axis=1)
-
-	# crear columna L
-	data['b'] = data.apply(lambda x: generarValorB(x['color']), axis=1)
-
-	# eliminar colores grises
-	data = data.loc[(data['a'] <= -5) | (data['a'] >= 5) & (data['b'] <= -5) | (data['b'] >= 5)]
-
-	# sumatoria de la frecuencia
-	sumatoriaFrecuencia = data['frecuencia'].sum()
-
-	# generar columna de porcentaje
-	data['porcentaje'] = data['frecuencia'] / sumatoriaFrecuencia * 100
-
-	# sumatoria de porcentajes
-	data['sumatoriaPorcentaje'] = data['porcentaje'].cumsum()
-
-	# tomar solo en cuenta el 80-20 de los datos
-	data = data.loc[data['sumatoriaPorcentaje'] <= 80]
-
-	# clasificacion de hoja de acuerdo al porcentaje de color verde
-	data['clasificacionColor'] = data.apply(lambda x: clasificacionDecolor(x['L'],x['a'],x['b']), axis=1)
-
-	# eliminar colores de fondo
-	#data = data.loc[data['clasificacionColor'] != 'f']
-
-	# nombre archivo de colores clasificados para cada imagen
-	nombreTemporalArchivoColoresClasificados = 'resultados/totalDecolores_clasificados_{}.csv'.format(nombreImagen.split('.')[0])
-
-	# guardar como csv
-	data.to_csv(nombreTemporalArchivoColoresClasificados, index=False)
-
-	# numero total de registros
-	numeroTotalDeRegistros = len(np.array(data['color']))
-
-	# numero de registros por clasificacion
-	pVerde = len(np.array(data.loc[data['clasificacionColor'] == 'v'])) / numeroTotalDeRegistros * 100
-	pRojo = len(np.array(data.loc[data['clasificacionColor'] == 'r'])) / numeroTotalDeRegistros * 100
-	pCafe = len(np.array(data.loc[data['clasificacionColor'] == 'c'])) / numeroTotalDeRegistros * 100
-	pAmarillo = len(np.array(data.loc[data['clasificacionColor'] == 'a'])) / numeroTotalDeRegistros * 100
-	pNaranja = len(np.array(data.loc[data['clasificacionColor'] == 'n'])) / numeroTotalDeRegistros * 100
-	pAzul = len(np.array(data.loc[data['clasificacionColor'] == 'az'])) / numeroTotalDeRegistros * 100
-
-	# agregar record al texto
-	dataTemporalFoliar = dataFoliar.loc[dataFoliar['Id'] == nombreImagen.split('.')[0]]
-	textToData += "Id,N,P,K,Ca,Mg,S,Fe,Cu,Mn,Zn,B,Mo,Na,Cl,pVerde,pRojo,pCafe,pAmarillo,pNaranja,pAzul".format(nombreImagen.split('.')[0],dataTemporalFoliar['N'],dataTemporalFoliar['P'],dataTemporalFoliar['K'],dataTemporalFoliar['Ca'],dataTemporalFoliar['Mg'],dataTemporalFoliar['S'],dataTemporalFoliar['Fe'],dataTemporalFoliar['Cu'],dataTemporalFoliar['Mn'],dataTemporalFoliar['Zn'],dataTemporalFoliar['B'],dataTemporalFoliar['Mo'],dataTemporalFoliar['Na'],dataTemporalFoliar['Cl'],pVerde,pRojo,pCafe,pAmarillo,pNaranja,pAzul)
-
 
 # funcion para determinar el porcentaje de color verde
 def clasificacionDecolor(L,a,b):
@@ -244,18 +170,18 @@ def clasificacionDecolor(L,a,b):
 	regresa v: verde, r: rojo, c: cafe, a: amarillo, n: naranja, az: azul, f: fondo
 	"""
 
-	if L >= 0 and L <= 88 and a >= -86 and a <= -20 and b >= 3 and b <= 128:
+	if L >= 2 and L <= 73 and a >= -64 and a <= -2 and b >= 3 and b <= 72:
 		return "v"
-	elif L >= 9 and L <= 56 and a >= 30 and a <= 71 and b >= 15 and b <= 51:
-		return "r"
-	elif L >= 44 and L <= 64 and a >= 12 and a <=26 and b >= 53 and b <= 55:
-		return "c"
-	elif L >= 66 and L <= 98 and a >= -14 and a <= 14 and b >= 50 and b <= 70:
+	elif L >= 74 and L <= 99 and a >= -66 and a <= -4 and b >= 5 and b <= 95:
 		return "a"
-	elif L >= 41 and L <= 67 and a >= 44 and a <= 47 and b >= 52 and b <= 61:
-		return "n"
-	elif L >= 2 and L <= 34 and a >= -128 and a <= -78 and b >= -128 and b <= -29:
-		return "az"
+	elif L >= 41 and L <= 94 and a >= -18 and a <= -10 and b >= 48 and b <= 80:
+		return "ag"
+	elif L >= 3 and L <= 67 and a >= 2 and a <= 42 and b >= 4 and b <= 75:
+		return "c"
+	elif L >= 10 and L <= 60 and a >= -14 and a <=-5 and b >= 15 and b <= 64:
+		return "ca"
+	elif L >= 2 and L <= 19 and a >= 11 and a <= 40 and b >= 4 and b <= 29:
+		return "cr"
 	else:
 		return "f"
 
